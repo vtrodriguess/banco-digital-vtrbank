@@ -17,40 +17,8 @@ public class Program {
 
 		Scanner sc = new Scanner(System.in);
 		List<IVtrBank> conta = new ArrayList<>();
-		int menu = 0;
 
-		do {
-			System.out.println("1 - Conta Corrente \n2 - Conta Poupanca \n3 - Conta Salario \n4 - Sair");
-			menu = sc.nextInt();
-
-			try {
-
-				switch (menu) {
-				case 1: {
-					contaCorrente(sc, conta);
-					break;
-				}
-				case 2: {
-					contaPoupanca(sc, conta);
-					break;
-				}
-				case 3: {
-					contaSalario(sc, conta);
-					break;
-				}
-				case 4: {
-					System.out.println("Saindo...");
-					break;
-				}
-				default:
-					throw new IllegalArgumentException("Digite valores de acordo com o menu");
-				}
-
-			} catch (IllegalArgumentException e) {
-				System.out.println(e.getMessage());
-			}
-
-		} while (menu != 4);
+		iniciarSistema(sc, conta);
 
 	}
 
@@ -81,8 +49,85 @@ public class Program {
 		}
 	}
 
-	public static void depositar(Scanner sc, List<IVtrBank> contas) {
-		int contaU = contaUsada(sc);
+	public static boolean verificacao(List<IVtrBank> conta, int menu) {
+		Class<?> tipoConta = null;
+		switch (menu) {
+		case 1:
+			tipoConta = Corrente.class;
+			break;
+		case 2:
+			tipoConta = Poupanca.class;
+			break;
+		case 3:
+			tipoConta = Salario.class;
+			break;
+		default: 
+			System.out.println("Inválido");
+			return false;
+		}
+
+		boolean existe = false;
+		if (!conta.isEmpty()) {
+			for (int i = 0; i < conta.size(); i++) {
+				if (tipoConta.isInstance(conta.get(i))) {
+					existe = true;
+					break;
+				}
+
+			}
+		} else {
+			System.out.println("Nenhuma conta cadastrada");
+		}
+		
+		return existe;
+	}
+	
+	public static void iniciarSistema(Scanner sc, List<IVtrBank> conta) {
+		int menu = 0;
+		int contaUsada = -1;
+		do {
+			System.out.println("1 - Conta Corrente \n2 - Conta Poupanca \n3 - Conta Salario \n4 - Sair");
+			menu = sc.nextInt();
+			
+			boolean existe = verificacao(conta, menu);
+
+			if (existe) {
+				contaUsada = contaUsada(sc);
+			} else {
+				System.out.println("Nenhuma conta do tipo cadastrada");
+			}
+
+			try {
+
+				switch (menu) {
+				case 1: {
+					contaCorrente(sc, conta, contaUsada);
+					break;
+				}
+				case 2: {
+					contaPoupanca(sc, conta, contaUsada);
+					break;
+				}
+				case 3: {
+					contaSalario(sc, conta, contaUsada);
+					break;
+				}
+				case 4: {
+					System.out.println("Saindo...");
+					break;
+				}
+				default:
+					throw new IllegalArgumentException("Digite valores de acordo com o menu");
+				}
+
+			} catch (IllegalArgumentException e) {
+				System.out.println(e.getMessage());
+			}
+
+		} while (menu != 4);
+	}
+
+	public static void depositar(Scanner sc, List<IVtrBank> contas, int contaU) {
 		System.out.println("Valor para deposito: ");
 		double dep = sc.nextDouble();
 		try {
@@ -92,20 +137,20 @@ public class Program {
 		}
 	}
 
-	public static void sacar(Scanner sc, List<IVtrBank> contas, double taxa) {
-		int contaU = contaUsada(sc);
+	public static void sacar(Scanner sc, List<IVtrBank> contas, double taxa, int contaUsada) {
 		System.out.println("Valor para sacar: ");
 		double saque = sc.nextDouble();
 		try {
-			contas.get(contaU).saca(saque, taxa);
+			contas.get(contaUsada).saca(saque, taxa);
 		} catch (IllegalArgumentException e) {
 			System.out.println(e.getMessage());
 		}
 	}
 
-	public static void extrato(Scanner sc, List<IVtrBank> contas) {
-		int contaU = contaUsada(sc);
-		System.out.println(contas.get(contaU).extrato());
+	public static void extrato(Scanner sc, List<IVtrBank> contas, int contaU, Class<?> tipoEsperado) {
+		if (tipoEsperado.isInstance(contas.get(contaU))) {
+			System.out.println(contas.get(contaU).extrato());
+		}
 	}
 
 	public static void emprestimo(Scanner sc, List<IVtrBank> contas, int contaUsada) {
@@ -137,8 +182,7 @@ public class Program {
 				System.out.println("Operação incorreta");
 			}
 
-		}
-		else {
+		} else {
 			System.out.println("Disponível apenas para conta corrente");
 		}
 	}
@@ -158,8 +202,8 @@ public class Program {
 		}
 	}
 
-	public static void transferencia(Scanner sc, List<IVtrBank> contas, int contaU, int contaT) {
-		IVtrBank origem = contas.get(contaU);
+	public static void transferencia(Scanner sc, List<IVtrBank> contas, int contaUsada, int contaT) {
+		IVtrBank origem = contas.get(contaUsada);
 		IVtrBank destino = contas.get(contaT);
 		System.out.println("Valor: ");
 		double valor = sc.nextDouble();
@@ -184,7 +228,7 @@ public class Program {
 		return contaT;
 	}
 
-	public static void contaCorrente(Scanner sc, List<IVtrBank> corrente) {
+	public static void contaCorrente(Scanner sc, List<IVtrBank> corrente, int contaUsada) {
 		int menu = 0;
 		do {
 			System.out.println(
@@ -198,43 +242,70 @@ public class Program {
 				break;
 			}
 			case 2: {
-				depositar(sc, corrente);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
+					break;
+				} else {
+					depositar(sc, corrente, contaUsada);
+					break;
+				}
 			}
 			case 3: {
-				sacar(sc, corrente, 5);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
+					break;
+				} else {
+					sacar(sc, corrente, 5, contaUsada);
+					break;
+				}
 			}
 			case 4: {
-				extrato(sc, corrente);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
+					break;
+				} else {
+					extrato(sc, corrente, contaUsada, Corrente.class);
+					break;
+				}
 			}
 			case 5: {
 				listaContas(corrente, Corrente.class);
 				break;
 			}
 			case 6: {
-				int contaU = contaUsada(sc);
-				int contaT = contaTransferir(sc);
-				IVtrBank destino = corrente.get(contaT);
-				IVtrBank origem = corrente.get(contaU);
-				if (destino instanceof Salario & !(origem instanceof Salario)) {
-					System.out.println("Não é possível realizar transferencia");
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
 					break;
 				} else {
-					transferencia(sc, corrente, contaU, contaT);
-					break;
+					int contaT = contaTransferir(sc);
+					IVtrBank destino = corrente.get(contaT);
+					IVtrBank origem = corrente.get(contaUsada);
+					if (destino instanceof Salario & !(origem instanceof Salario)) {
+						System.out.println("Não é possível realizar transferencia");
+						break;
+					} else {
+						transferencia(sc, corrente, contaUsada, contaT);
+						break;
+					}
 				}
 			}
 			case 7: {
-				int contaU = contaUsada(sc);
-				emprestimo(sc, corrente, contaU);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
+					break;
+				} else {
+					emprestimo(sc, corrente, contaUsada);
+					break;
+				}
 			}
 			case 8: {
-				int contaU = contaUsada(sc);
-				cofrinho(sc, corrente, contaU);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
+					break;
+				} else {
+					cofrinho(sc, corrente, contaUsada);
+					break;
+				}
 			}
 			case 9: {
 				System.out.println("Saindo...");
@@ -244,10 +315,10 @@ public class Program {
 				throw new IllegalArgumentException("Unexpected value: " + menu);
 			}
 
-		} while (menu != 9);
+		} while (menu != 1 && menu != 9);
 	}
 
-	public static void contaPoupanca(Scanner sc, List<IVtrBank> poupanca) {
+	public static void contaPoupanca(Scanner sc, List<IVtrBank> poupanca, int contaUsada) {
 		int menu = 0;
 		do {
 			System.out.println(
@@ -261,32 +332,51 @@ public class Program {
 				break;
 			}
 			case 2: {
-				depositar(sc, poupanca);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
+					break;
+				} else {
+					depositar(sc, poupanca, contaUsada);
+					break;
+				}
 			}
 			case 3: {
-				sacar(sc, poupanca, 10);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
+					break;
+				} else {
+					sacar(sc, poupanca, 10, contaUsada);
+					break;
+				}
 			}
 			case 4: {
-				extrato(sc, poupanca);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Nenhuma conta cadastrada");
+					break;
+				} else {
+					extrato(sc, poupanca, contaUsada, Poupanca.class);
+					break;
+				}
 			}
 			case 5: {
 				listaContas(poupanca, Poupanca.class);
 				break;
 			}
 			case 6: {
-				int contaU = contaUsada(sc);
-				int contaT = contaTransferir(sc);
-				IVtrBank destino = poupanca.get(contaT);
-				IVtrBank origem = poupanca.get(contaU);
-				if (!(destino instanceof Corrente) && !(origem instanceof Poupanca)) {
-					System.out.println("Não é possível realizar transferencia");
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
 					break;
 				} else {
-					transferencia(sc, poupanca, contaU, contaT);
-					break;
+					int contaT = contaTransferir(sc);
+					IVtrBank destino = poupanca.get(contaT);
+					IVtrBank origem = poupanca.get(contaUsada);
+					if (!(destino instanceof Corrente) && !(origem instanceof Poupanca)) {
+						System.out.println("Não é possível realizar transferencia");
+						break;
+					} else {
+						transferencia(sc, poupanca, contaUsada, contaT);
+						break;
+					}
 				}
 			}
 			case 7: {
@@ -297,10 +387,10 @@ public class Program {
 				throw new IllegalArgumentException("Unexpected value: " + menu);
 			}
 
-		} while (menu != 7);
+		} while (menu != 1 && menu != 7);
 	}
 
-	public static void contaSalario(Scanner sc, List<IVtrBank> salario) {
+	public static void contaSalario(Scanner sc, List<IVtrBank> salario, int contaUsada) {
 		int menu = 0;
 		do {
 			System.out.println(
@@ -314,32 +404,51 @@ public class Program {
 				break;
 			}
 			case 2: {
-				depositar(sc, salario);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
+					break;
+				} else {
+					depositar(sc, salario, contaUsada);
+					break;
+				}
 			}
 			case 3: {
-				sacar(sc, salario, 10);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
+					break;
+				} else {
+					sacar(sc, salario, 10, contaUsada);
+					break;
+				}
 			}
 			case 4: {
-				extrato(sc, salario);
-				break;
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
+					break;
+				} else {
+					extrato(sc, salario, contaUsada, Corrente.class);
+					break;
+				}
 			}
 			case 5: {
 				listaContas(salario, Salario.class);
 				break;
 			}
 			case 6: {
-				int contaU = contaUsada(sc);
-				int contaT = contaTransferir(sc);
-				IVtrBank destino = salario.get(contaT);
-				IVtrBank origem = salario.get(contaU);
-				if (!(destino instanceof Corrente) && !(origem instanceof Salario)) {
-					System.out.println("Não é possível realizar transferencia");
+				if (contaUsada == -1) {
+					System.out.println("Não existe conta cadastrada");
 					break;
 				} else {
-					transferencia(sc, salario, contaU, contaT);
-					break;
+					int contaT = contaTransferir(sc);
+					IVtrBank destino = salario.get(contaT);
+					IVtrBank origem = salario.get(contaUsada);
+					if (!(destino instanceof Corrente) && !(origem instanceof Salario)) {
+						System.out.println("Não é possível realizar transferencia");
+						break;
+					} else {
+						transferencia(sc, salario, contaUsada, contaT);
+						break;
+					}
 				}
 			}
 			case 7: {
@@ -350,7 +459,7 @@ public class Program {
 				throw new IllegalArgumentException("Unexpected value: " + menu);
 			}
 
-		} while (menu != 7);
+		} while (menu != 1 && menu != 7);
 
 	}
 
