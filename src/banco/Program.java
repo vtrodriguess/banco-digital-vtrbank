@@ -53,15 +53,18 @@ public class Program {
 		Class<?> tipoConta = null;
 		switch (menu) {
 		case 1:
+			System.out.println("Iniciando cadastro...");
+			return false;
+		case 2:
 			tipoConta = Corrente.class;
 			break;
-		case 2:
+		case 3:
 			tipoConta = Poupanca.class;
 			break;
-		case 3:
+		case 4:
 			tipoConta = Salario.class;
 			break;
-		default: 
+		default:
 			System.out.println("Inválido");
 			return false;
 		}
@@ -75,44 +78,68 @@ public class Program {
 				}
 
 			}
-		} else {
-			System.out.println("Nenhuma conta cadastrada");
 		}
-		
+
 		return existe;
 	}
-	
+
 	public static void iniciarSistema(Scanner sc, List<IVtrBank> conta) {
 		int menu = 0;
-		int contaUsada = -1;
+		int contaUsadaSalario = -1;
+		int contaUsadaCorrente = -1;
+		int contaUsadaPoupanca = -1;
 		do {
-			System.out.println("1 - Conta Corrente \n2 - Conta Poupanca \n3 - Conta Salario \n4 - Sair");
+			System.out.println("1 - Cadastrar \n2 - Conta Corrente \n3 - Conta Poupanca \n4 - Conta Salario \n5 - Sair");
 			menu = sc.nextInt();
-			
-			boolean existe = verificacao(conta, menu);
 
-			if (existe) {
-				contaUsada = contaUsada(sc);
-			} else {
-				System.out.println("Nenhuma conta do tipo cadastrada");
-			}
+			boolean existe = verificacao(conta, menu);
 
 			try {
 
 				switch (menu) {
 				case 1: {
-					contaCorrente(sc, conta, contaUsada);
-					break;
-				}
+			        System.out.println("Tipo da conta para cadastrar:\n1 - Corrente\n2 - Poupança\n3 - Salário");
+			        int tipo = sc.nextInt();
+			        try {
+			            IVtrBank novaConta = cadastro(sc, tipo);
+			            conta.add(novaConta);
+			            System.out.println("Conta cadastrada com sucesso.");
+			        } catch (IllegalArgumentException e) {
+			            System.out.println(e.getMessage());
+			        }
+			        break;
+			    }
 				case 2: {
-					contaPoupanca(sc, conta, contaUsada);
-					break;
+					if (existe) {
+						contaUsadaCorrente = contaUsada(sc);
+						contaCorrente(sc, conta, contaUsadaCorrente);
+						break;
+					} else {
+						System.out.println("Nenhuma conta do tipo cadastrada");
+						break;
+					}
 				}
 				case 3: {
-					contaSalario(sc, conta, contaUsada);
-					break;
+					if (existe) {
+						contaUsadaPoupanca = contaUsada(sc);
+						contaPoupanca(sc, conta, contaUsadaPoupanca);
+						break;
+					} else {
+						System.out.println("Nenhuma conta do tipo cadastrada");
+						break;
+					}
 				}
 				case 4: {
+					if (existe) {
+						contaUsadaSalario = contaUsada(sc);
+						contaCorrente(sc, conta, contaUsadaSalario);
+						break;
+					} else {
+						System.out.println("Nenhuma conta do tipo cadastrada");
+						break;
+					}
+				}
+				case 5: {
 					System.out.println("Saindo...");
 					break;
 				}
@@ -124,7 +151,7 @@ public class Program {
 				System.out.println(e.getMessage());
 			}
 
-		} while (menu != 4);
+		} while (menu != 5);
 	}
 
 	public static void depositar(Scanner sc, List<IVtrBank> contas, int contaU) {
@@ -232,16 +259,12 @@ public class Program {
 		int menu = 0;
 		do {
 			System.out.println(
-					"1 - Cadastrar \n2 - Depositar \n3 - Sacar \n4 - Extrato \n5 - Listar \n6 - Transferencia \n7 - Emprestimo \n8 - Cofrinho \n9 - Sair");
+					"1 - Depositar \n2 - Sacar \n3 - Extrato \n4 - Listar \n5 - Transferencia \n6 - Emprestimo \n7 - Cofrinho \n8 - Sair");
 			menu = sc.nextInt();
 
 			switch (menu) {
+
 			case 1: {
-				IVtrBank cadastro = cadastro(sc, 1);
-				corrente.add(cadastro);
-				break;
-			}
-			case 2: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -250,7 +273,7 @@ public class Program {
 					break;
 				}
 			}
-			case 3: {
+			case 2: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -259,7 +282,7 @@ public class Program {
 					break;
 				}
 			}
-			case 4: {
+			case 3: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -268,11 +291,11 @@ public class Program {
 					break;
 				}
 			}
-			case 5: {
+			case 4: {
 				listaContas(corrente, Corrente.class);
 				break;
 			}
-			case 6: {
+			case 5: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -289,7 +312,7 @@ public class Program {
 					}
 				}
 			}
-			case 7: {
+			case 6: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -298,7 +321,7 @@ public class Program {
 					break;
 				}
 			}
-			case 8: {
+			case 7: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -307,7 +330,7 @@ public class Program {
 					break;
 				}
 			}
-			case 9: {
+			case 8: {
 				System.out.println("Saindo...");
 				break;
 			}
@@ -315,23 +338,18 @@ public class Program {
 				throw new IllegalArgumentException("Unexpected value: " + menu);
 			}
 
-		} while (menu != 1 && menu != 9);
+		} while (menu != 8);
 	}
 
 	public static void contaPoupanca(Scanner sc, List<IVtrBank> poupanca, int contaUsada) {
 		int menu = 0;
 		do {
 			System.out.println(
-					"1 - Cadastrar \n2 - Depositar \n3 - Sacar \n4 - Extrato \n5 - Listar \n6 - Transferencia \n7 - Sair");
+					"1 - Depositar \n2 - Sacar \n3 - Extrato \n4 - Listar \n5 - Transferencia \n6 - Sair");
 			menu = sc.nextInt();
 
 			switch (menu) {
 			case 1: {
-				IVtrBank cadastro = cadastro(sc, 2);
-				poupanca.add(cadastro);
-				break;
-			}
-			case 2: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -340,7 +358,7 @@ public class Program {
 					break;
 				}
 			}
-			case 3: {
+			case 2: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -349,7 +367,7 @@ public class Program {
 					break;
 				}
 			}
-			case 4: {
+			case 3: {
 				if (contaUsada == -1) {
 					System.out.println("Nenhuma conta cadastrada");
 					break;
@@ -358,11 +376,11 @@ public class Program {
 					break;
 				}
 			}
-			case 5: {
+			case 4: {
 				listaContas(poupanca, Poupanca.class);
 				break;
 			}
-			case 6: {
+			case 5: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -379,7 +397,7 @@ public class Program {
 					}
 				}
 			}
-			case 7: {
+			case 6: {
 				System.out.println("Saindo...");
 				break;
 			}
@@ -387,23 +405,18 @@ public class Program {
 				throw new IllegalArgumentException("Unexpected value: " + menu);
 			}
 
-		} while (menu != 1 && menu != 7);
+		} while (menu != 6);
 	}
 
 	public static void contaSalario(Scanner sc, List<IVtrBank> salario, int contaUsada) {
 		int menu = 0;
 		do {
 			System.out.println(
-					"1 - Cadastrar \n2 - Depositar \n3 - Sacar \n4 - Extrato \n5 - Listar \n6 - Transferencia \n7 - Sair");
+					"1 - Depositar \n2 - Sacar \n3 - Extrato \n4 - Listar \n5 - Transferencia \n6 - Sair");
 			menu = sc.nextInt();
 
 			switch (menu) {
 			case 1: {
-				IVtrBank cadastro = cadastro(sc, 3);
-				salario.add(cadastro);
-				break;
-			}
-			case 2: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -412,7 +425,7 @@ public class Program {
 					break;
 				}
 			}
-			case 3: {
+			case 2: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -421,20 +434,20 @@ public class Program {
 					break;
 				}
 			}
-			case 4: {
+			case 3: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
 				} else {
-					extrato(sc, salario, contaUsada, Corrente.class);
+					extrato(sc, salario, contaUsada, Salario.class);
 					break;
 				}
 			}
-			case 5: {
+			case 4: {
 				listaContas(salario, Salario.class);
 				break;
 			}
-			case 6: {
+			case 5: {
 				if (contaUsada == -1) {
 					System.out.println("Não existe conta cadastrada");
 					break;
@@ -451,7 +464,7 @@ public class Program {
 					}
 				}
 			}
-			case 7: {
+			case 6: {
 				System.out.println("Saindo...");
 				break;
 			}
@@ -459,7 +472,7 @@ public class Program {
 				throw new IllegalArgumentException("Unexpected value: " + menu);
 			}
 
-		} while (menu != 1 && menu != 7);
+		} while (menu != 6);
 
 	}
 
